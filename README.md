@@ -1,4 +1,4 @@
-# suiteparse
+# suiteparse.rb
 
 ### SuiteParser is a derived class from Ruby library OptionParser to allow processing of command line suites
 
