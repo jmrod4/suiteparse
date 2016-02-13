@@ -1,6 +1,6 @@
 # SuiteParser
 
-### is a derived class from Ruby library OptionParser to allow processing of command line suites
+### Suite parser is a derived class from Ruby library OptionParser to allow processing of command line suites
 
 Author:: Juanma Rodriguez
 
@@ -10,7 +10,7 @@ Any sugestions, comments or bug reports welcome.
 
 ### HOW TO USE
 
-**Please see the test example at the end of the library file!**
+**For the moment please see the test example at the end of the library file!**
 
 Pros:
  * same calling syntax and operation, just use SuiteParser instead
