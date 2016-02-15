@@ -12,14 +12,18 @@ Any sugestions, comments or bug reports welcome.
 ## Why to use it?
 
 Pros:
+ 
  * if you are familiar with OptionParser you use the same calling syntax 
    and operation
+ 
  * no need to add other gems or, even worse, that gems' dependences
 
 Cons:
+ 
  * you tell me :)
 
 Known problems:
+ 
  * not managed (i.e. breaks) if user calls directly order!() or order()
 
 ## How to use
