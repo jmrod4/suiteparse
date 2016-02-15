@@ -40,32 +40,41 @@ require 'optparse'
 class SuiteParser < OptionParser
 
   class Command
-     attr_reader :parser
+     attr_reader :parser, :short_desc
 
-     def initialize(name, short_desc, long_desc=nil, &block)
+     def initialize(name, short_desc, long_desc, width, indent, &block)
        @name = name
        @short_desc = short_desc
        @long_desc = ((long_desc.nil?)? short_desc : long_desc)
        @block = block
-       parser = OptionParser.new
-       # XXX parser.program_name doesn't come from the top level parser
-       parser.banner = "#{short_desc}
+       @parser = OptionParser.new(nil, width, indent) do |parser|
+         # XXX parser.program_name doesn't come from the top level parser
+         parser.banner = "
+usage: #{parser.program_name} #{name} [options] [<args>]
 
-Usage: #{parser.program_name} #{name} [options]"
-       @parser = parser
+#{@long_desc}
+
+Options:"
+       end
      end
 
-     def execute
-       @block.call if @block
+     def execute(*args)
+       @block.call *args if @block
      end
+
   end
 
-  def initialize
+  def initialize(banner=nil, width=16, indent=' '*3) 
     @debug = true
     @cmds = {}
-    parser = super
-    on_new_command(:help, "show help about commands") do
-      puts help
+    parser = super(banner, width, indent)
+    on_new_command(:help, "show help about commands") do |args|
+      argvs = split_argv(args)
+      if argvs[:cmd]
+	puts @cmds[argvs[:cmd]].parser.help
+      else
+        puts help
+      end    
       exit 1
     end
     parser
@@ -81,12 +90,18 @@ Usage: #{parser.program_name} #{name} [options]"
     # TODO normalize exception
     raise "command <#{command}> already defined" if @cmds.has_key? command
 
-    if @cmds.empty?
-      # setup global banner
-      banner = "Usage: #{program_name} [global_options] <command> [options] [<args>]"
+    # only change the default banner if there are at least one command
+    # *and* there is no user supplied banner
+    if @cmds.empty? and @banner.nil?
+      # setup global banner for global help
+      @banner = "
+usage: #{program_name} [global_options] <command> [options] [<args>]
+
+Gobal options:"
     end
 
-    @cmds[command] = Command.new(command, short_desc, long_desc, &block) 
+    @cmds[command] = Command.new(command, short_desc, long_desc, 
+          @summary_width, @summary_indent, &block) 
   end
 
   def on_command(command, *opts, &block)
@@ -98,8 +113,27 @@ Usage: #{parser.program_name} #{name} [options]"
 
   def help
     s = super
-    @cmds.each { |name, cmd| s << cmd.parser.help }
-    s
+    # put the end to global help
+    s << "\nCommands:\n"
+=begin
+    # alternative code using the same width as for options
+    @cmds.each do |name, cmd| 
+      s << @summary_indent
+      s << "%*s " % [-@summary_width, name] 
+      s << cmd.short_desc
+      s << "\n"
+    end
+=end
+    max_len = (@cmds.keys.collect { |name| name.size }).max
+    @cmds.each do |name, cmd| 
+      s << @summary_indent
+      s << "%*s" % [-max_len-@summary_indent.size, name] 
+      s << cmd.short_desc
+      s << "\n"
+    end
+
+
+    s << "\n'#{program_name} help <command>' to get additional help." 
   end
 
   # return a hash of: global_argv, command, cmd_argv
@@ -120,10 +154,10 @@ Usage: #{parser.program_name} #{name} [options]"
     super argvs[:global_argv]
     cmd = argvs[:cmd]
     if cmd
-      @cmds[cmd].execute
       @cmds[cmd].parser.permute! argvs[:cmd_argv]
+      @cmds[cmd].execute argvs[:cmd_argv]
     end
-    
+   
     #TODO normalize exceptions
     if argvs[:global_argv].size > 0
       raise "unrecognized command #{argvs[:global_argv]}"
