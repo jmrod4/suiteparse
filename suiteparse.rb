@@ -7,7 +7,7 @@
 #
 # Author:: Juanma Rodriguez
 #
-# Release:: February 2016
+# Release:: February 2016 - Alpha
 #
 # Any sugestions, comments or bug reports welcome.
 #
@@ -33,65 +33,103 @@
 # You can use and distribute it under the terms of the LGPL Version 3
 # This is free software and is offered without any warranty.
 #
+
 require 'optparse'
+
 
 class SuiteParser < OptionParser
 
+  class Command
+     attr_reader :parser
+
+     def initialize(name, short_desc, long_desc=nil, &block)
+       @name = name
+       @short_desc = short_desc
+       @long_desc = ((long_desc.nil?)? short_desc : long_desc)
+       @block = block
+       parser = OptionParser.new
+       # XXX parser.program_name doesn't come from the top level parser
+       parser.banner = "#{short_desc}
+
+Usage: #{parser.program_name} #{name} [options]"
+       @parser = parser
+     end
+
+     def execute
+       @block.call if @block
+     end
+  end
+
   def initialize
+    @debug = true
     @cmds = {}
-    @blocks = {}
-    super
+    parser = super
+    on_new_command(:help, "show help about commands") do
+      puts help
+      exit 1
+    end
+    parser
+  end
+
+  def debug(msg)
+    if @debug
+      puts "#{program_name}: debug: #{msg}"
+    end
+  end
+
+  def on_new_command(command, short_desc, long_desc=nil, &block)
+    # TODO normalize exception
+    raise "command <#{command}> already defined" if @cmds.has_key? command
+
+    if @cmds.empty?
+      # setup global banner
+      banner = "Usage: #{program_name} [global_options] <command> [options] [<args>]"
+    end
+
+    @cmds[command] = Command.new(command, short_desc, long_desc, &block) 
   end
 
   def on_command(command, *opts, &block)
-    if @cmds.size < 1
-      self.banner = "Usage: #{program_name} [options] <command> [options] [<args>]"
-    end
-
-    if not @cmds.has_key?(command)
-      newparser = OptionParser.new
-      newparser.banner = "Usage: #{self.program_name} #{command} [options]"
-      if opts.size > 1 && opts[0].nil?
-        newparser.banner = "\n#{command}: #{opts[1]}\n" + newparser.banner
-      end
-      @cmds[command] = newparser
-    end
-
-    if opts.size > 0 
-      if opts[0].nil?
-        @blocks[command] = block 
-      else
-        @cmds[command].on(*opts, &block)
-      end
-    end
+    # TODO normalize exception
+    raise "undefined command #{command}" if not @cmds.has_key? command
+    
+    @cmds[command].parser.on(*opts, &block)
   end
 
   def help
     s = super
-    @cmds.each { |cmd, parser| s += parser.help }
+    @cmds.each { |name, cmd| s << cmd.parser.help }
     s
   end
 
+  # return a hash of: global_argv, command, cmd_argv
   def split_argv(argv)
     cmd_pos = argv.index { |arg| @cmds.keys.include? arg.to_sym }
     
-    return {global_argv: argv} if cmd_pos.nil?
+    return {global_argv: argv, cmd: nil, cmd_argv: []}   if cmd_pos.nil? 
+
     res = {} 
-    res[:cmd] = argv[cmd_pos].to_sym
+    res[:cmd] = argv[cmd_pos].to_sym 
     res[:global_argv] = argv.first(cmd_pos)
     res[:cmd_argv] = argv[cmd_pos+1..-1]
     res
   end
 
-  def parse!(argv = default_argv)
-    a = split_argv(argv) 
-    super a[:global_argv]
-    cmd = a[:cmd]
+  def permute!(full_argv = default_argv)
+    argvs = split_argv(full_argv) 
+    super argvs[:global_argv]
+    cmd = argvs[:cmd]
     if cmd
-      @blocks[cmd].call if @blocks[cmd]
-      @cmds[cmd].parse! a[:cmd_argv]
+      @cmds[cmd].execute
+      @cmds[cmd].parser.permute! argvs[:cmd_argv]
     end
-    argv.replace(a[:global_argv] + (a[:cmd_argv] || []))
+    
+    #TODO normalize exceptions
+    if argvs[:global_argv].size > 0
+      raise "unrecognized command #{argvs[:global_argv]}"
+    end
+
+    full_argv.replace(argvs[:cmd_argv])
   end
 end
 
@@ -101,7 +139,7 @@ if __FILE__ == $0
 
   options = {}
 
-  p "ARGV", ARGV
+  puts "ARGV = " + ARGV.inspect
   
   parser = SuiteParser.new do |parser|
 
@@ -110,8 +148,8 @@ if __FILE__ == $0
       parser.warn "Debug activated!"
     end
 
-    parser.on_command(:add, nil,
-                      "add something!") do 
+    parser.on_new_command(:add, 
+        "add something!") do 
       options[:command] = :add
       options[:add] = {}
     end  
@@ -120,21 +158,21 @@ if __FILE__ == $0
       options[:add][:all] = true
     end
 
-    parser.on_command(:list, nil,
-                      "list something!") do 
+    parser.on_new_command(:list,
+        "list something!") do 
       options[:command] = :list
       options[:list] = {}
     end  
     
     parser.on_command(:list, "-s", "--sort",
-                      "order everything!") do
+        "order everything!") do
       options[:list][:sort] = true
     end
   end
 
   parser.parse!
 
-  p "ARGV", ARGV
-  p "options", options
+  parser.debug "ARGV = " + ARGV.inspect
+  parser.debug "options = " + options.inspect
 end
 
