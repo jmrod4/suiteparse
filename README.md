@@ -1,40 +1,67 @@
-# suiteparse.rb
+# SuiteParse
 
-**SuiteParser is a derived class from Ruby library OptionParser to allow
+**SuiteParser is a derived class from Ruby library OptionParser for
 creating lightweight command line suites.**
-
-Author:: Juanma Rodriguez
-
-Release:: February 2016
 
 Any sugestions, comments or bug reports welcome.
 
 ## Why to use it?
 
 Pros:
- 
+
  * if you are familiar with OptionParser you use the same calling syntax 
    and operation
- 
- * no need to add other gems or, even worse, that gems' dependences
+ * lightweight alternative
 
 Cons:
  
  * you tell me :)
 
 Known problems:
- 
- * not managed (i.e. breaks) if user calls directly order!() or order()
+ * not managed (i.e. unexpected results) if user calls directly order!() or order()
 
-## How to use
+## Installation
 
-There is no gem installation available for the moment, so you can:
+### Install it for all your applications
 
- * Grab the file **suiteparse.rb**
+At the shell prompt execute:
 
- * Put it in any accesible place (for example your application
-   or lib directory)
+    $ gem install suiteparse
 
- * require it!
+### Install in your own gem application
 
-**For an example of use please see the test example at the end of the file!**
+Add following line to your application Gemfile
+
+```ruby
+gem 'suiteparse'
+```
+
+And then execute:
+
+    $ bundle
+
+### Manual install
+
+ * Grab the file 'lib/suiteparse.rb'
+ * Remove the line 'require "lib/version"'
+ * Put it in any accesible place from your application (lib directory?)
+ * Add to your app:
+
+    require "suiteparse"
+
+## Usage
+
+All examples of use of 'optparse' should work unchanged with OptionParse.
+
+Additionaly includes command line suite features.
+
+**For an example of use of the extended features a please see the test example
+at the end of the file 'lib/optionparse.rb'**
+
+## Developing SuiteParse further 
+
+After checking out the repo, run `bin/setup` to install dependencies. Then, 
+run `rake test` to run the tests. You can also run `bin/console` for an
+interactive prompt that will allow you to experiment. Run `bundle exec 
+suiteparse` to use   the gem in this directory, ignoring other installed 
+copies of this gem.

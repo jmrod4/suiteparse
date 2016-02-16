@@ -34,11 +34,11 @@
 # This is free software and is offered without any warranty.
 #
 
-#require "suiteparse/version"
+require "suiteparse/version"
+
+require "optparse"
 
 module SuiteParse
-
-  require "optparse"
 
   class Command
      attr_reader :parser, :short_desc
