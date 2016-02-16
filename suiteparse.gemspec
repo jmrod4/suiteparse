@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Juanma Rodriguez"]
   spec.email         = ["jmrod4@gmail.com"]
 
-  spec.summary       = %q{SuiteParser is a derived class from Ruby library 'optparse' to allow processing of command line suites.}
+  spec.summary       = %q{SuiteParser is a derived class from Ruby library OptionParser for creating lightweight command line suites.}
   #spec.description   = %q{TODO: Write a longer description or delete this line.}
   spec.homepage      = "https://github.com/jmrod4/suiteparse"
   spec.license       = "MIT"
