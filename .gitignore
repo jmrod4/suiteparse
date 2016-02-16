@@ -1,0 +1,15 @@
+# editor files
+*.swp
+*~
+
+# temp or generated dirs
+/.bundle/
+/.yardoc
+/Gemfile.lock
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+

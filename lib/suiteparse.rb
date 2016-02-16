@@ -34,10 +34,11 @@
 # This is free software and is offered without any warranty.
 #
 
-require 'optparse'
+#require "suiteparse/version"
 
+module SuiteParse
 
-class SuiteParser < OptionParser
+  require "optparse"
 
   class Command
      attr_reader :parser, :short_desc
@@ -64,9 +65,15 @@ Options:"
 
   end
 
+end # module SuiteParse
+
+
+class SuiteParser < OptionParser
+
   def initialize(banner=nil, width=16, indent=' '*3) 
     @debug = true
     @cmds = {}
+    @cmds_internal = [:help]
     parser = super(banner, width, indent)
     on_new_command(:help, "show help about commands") do |args|
       argvs = split_argv(args)
@@ -100,7 +107,7 @@ usage: #{program_name} [global_options] <command> [options] [<args>]
 Gobal options:"
     end
 
-    @cmds[command] = Command.new(command, short_desc, long_desc, 
+    @cmds[command] = SuiteParse::Command.new(command, short_desc, long_desc, 
           @summary_width, @summary_indent, &block) 
   end
 
@@ -125,11 +132,13 @@ Gobal options:"
     end
 =end
     max_len = (@cmds.keys.collect { |name| name.size }).max
-    @cmds.each do |name, cmd| 
-      s << @summary_indent
-      s << "%*s" % [-max_len-@summary_indent.size, name] 
-      s << cmd.short_desc
-      s << "\n"
+    @cmds.keys.sort.each do |name|
+      if not @cmds_internal.include? name
+        s << @summary_indent
+        s << "%*s" % [-max_len-@summary_indent.size, name] 
+        s << @cmds[name].short_desc
+        s << "\n"
+      end
     end
 
 
@@ -209,4 +218,5 @@ if __FILE__ == $0
   parser.debug "ARGV = " + ARGV.inspect
   parser.debug "options = " + options.inspect
 end
+
 
