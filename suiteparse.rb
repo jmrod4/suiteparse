@@ -170,6 +170,8 @@ end
 
 
 if __FILE__ == $0
+	
+  # Example of use
 
   options = {}
 
