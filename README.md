@@ -24,7 +24,7 @@ Cons:
 
 Known problems:
  
- * not managed (i.e. breaks) if user calls directly order!() or order()
+ * not managed (i.e. it breaks) if user calls directly order!() or order()
 
 ## How to use
 
